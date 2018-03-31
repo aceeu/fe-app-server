@@ -3,6 +3,8 @@ let session = require('express-session');
 let MongoClient = require('mongodb').MongoClient;
 let config = require('./config');
 const bodyParser = require('body-parser');
+const addData = require('./add-data');
+const detectValidUser = require('./helpers').detectValidUser;
 
 const dbName = config.db_name;
 let app = express();
@@ -26,13 +28,6 @@ app.use((req, res, next) => {
     res.setHeader('Content-Type', 'text/json');
     next();
 })
-
-async function detectValidUser(mongoClient, session) {
-    const collection = client.db(dbName).collection('users');
-    const fres = await col.find({user: {$eq: session.name}});
-    const items = await fres.toArray();
-    return items != 0;
-}
 
 
 app.post('/auth', async function(req, res, next) {
@@ -79,32 +74,8 @@ app.get('/user', function(req, res, next){
     res.end();
 });
 
-app.get('/data', async function(req, res, next) {
-    const client = await MongoClient.connect(config.database_url);
-    if (detectValidUser(client, req.session)) {
-        const collection = client.db(dbName).collection('data');
-        const findRes = await col.find();
-        res.json(findRes);
-    } else {
-        res.json({});
-    }
-    res.end();
-});
+app.get('/data', addData.fetchDataHandler());
 
-app.post('/adddata', async function(req, res, next) {
-    const client = await MongoClient.connect(config.database_url);
-    if (detectValidUser(client, req.session)) {
-        const collection = client.db(dbName).collection('data');
-        // need check body data
-        let ires = collection.insertOne(req.body);
-        if (ires.result.ok)
-            res.json({res: true});
-        else
-            res.json({res: false, text: 'cannot insert data to db'});
-    } else {
-        res.json({res: false, text: 'invalid user'});
-    }
-    res.end();
-});
+app.post('/adddata', addData.addDataHandler());
 
 app.listen(3001);
