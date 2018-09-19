@@ -85,7 +85,7 @@ function fetchDataHandler() {
           const client = await MongoClient.connect(config.database_url);
           if (await detectValidUser(client, req.session)) {
               const collection = client.db(config.db_name).collection('data');
-              let findExpr = {created: {$gte: fromDate}};
+              let findExpr = {buyDate: {$gte: fromDate}};
               if (buyer && buyer.length)
                 findExpr = {...findExpr, buyer: {$eq: buyer}};
               const findRes = await collection.find(findExpr);
