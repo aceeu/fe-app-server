@@ -12,5 +12,5 @@ async function detectValidUser(mongoClient, session) {
     console.log('user items:' + JSON.stringify(items));
     return items.length == 1;
 }
-
+// exports
 exports.detectValidUser = detectValidUser;
