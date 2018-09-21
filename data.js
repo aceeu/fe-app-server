@@ -57,37 +57,23 @@ function addDataHandler() {
     }
 }
 
-function getStartData(period) {
-  const Period = {
-    lastDay: 1,
-    lastWeek: 2,
-    lastMonth: 3,
-    lastYear: 4
-  };
-  switch (period) {
-    case Period.lastDay: return moment().subtract(1, 'days').toDate();
-    case Period.lastWeek: return moment().subtract(7, 'days').toDate();
-    case Period.lastMonth: return moment().subtract(1, 'months').toDate();
-    case Period.lastYear: return moment().subtract(50, 'days').toDate();
-    default: throw 'invalid period';
-  }
-}
-
 function fetchDataHandler() {
     return async function(req, res, next) {
         try{
           if (!req.session.name)
             throw 'invalid session';
           console.log('body:' + JSON.stringify(req.body));
-          const period = req.body.period;
+          const fromDate = moment(req.body.fromDate);
+          const toDate =moment(req.body.toDate) || moment().toDate(); // toDate < fromDate
+
           const buyer = req.body.buyer;
-          const fromDate = getStartData(period);
           const client = await MongoClient.connect(config.database_url);
           if (await detectValidUser(client, req.session)) {
               const collection = client.db(config.db_name).collection('data');
-              let findExpr = {buyDate: {$gte: fromDate}};
+              let findExpr = {buyDate: {$gte: fromDate.toDate(), $lt: toDate.toDate()}};
               if (buyer && buyer.length)
                 findExpr = {...findExpr, buyer: {$eq: buyer}};
+              console.log(JSON.stringify(findExpr));
               const findRes = await collection.find(findExpr);
               let items = await findRes.toArray();
               res.json(items);
