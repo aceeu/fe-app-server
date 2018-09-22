@@ -66,13 +66,13 @@ function fetchDataHandler() {
           const fromDate = moment(req.body.fromDate);
           const toDate =moment(req.body.toDate) || moment().toDate(); // toDate < fromDate
 
-          const buyer = req.body.buyer;
+          const {filter} = req.body;
           const client = await MongoClient.connect(config.database_url);
           if (await detectValidUser(client, req.session)) {
               const collection = client.db(config.db_name).collection('data');
               let findExpr = {buyDate: {$gte: fromDate.toDate(), $lt: toDate.toDate()}};
-              if (buyer && buyer.length)
-                findExpr = {...findExpr, buyer: {$eq: buyer}};
+              if (filter && filter.column && filter.column == 'buyer')
+                findExpr = {...findExpr, buyer: {$eq: filter.text}};
               console.log(JSON.stringify(findExpr));
               const findRes = await collection.find(findExpr);
               let items = await findRes.toArray();
