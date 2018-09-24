@@ -71,7 +71,7 @@ function fetchDataHandler() {
           if (await detectValidUser(client, req.session)) {
               const collection = client.db(config.db_name).collection('data');
               let findExpr = {buyDate: {$gte: fromDate.toDate(), $lt: toDate.toDate()}};
-              if (filter && filter.column && filter.column == 'buyer')
+              if (filter && filter.column && filter.column == 'buyer' && filter.text.length)
                 findExpr = {...findExpr, buyer: {$eq: filter.text}};
               console.log(JSON.stringify(findExpr));
               const findRes = await collection.find(findExpr);
