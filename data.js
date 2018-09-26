@@ -30,13 +30,12 @@ function addDataHandler() {
         let row = req.body;
         if (!checkData(row))
           throw 'invalid check data';
+        row = {...row, buyDate: new Date(row.buyDate)}; // convert to date of buydate value
         const thisdate = moment().toDate();
         if (row._id) { // edit data
           const {_id, ...rowni} = row;
           const values = {...rowni, editor: req.session.name, edited: thisdate}
-          console.log('values=' + JSON.stringify(values));
           const ires = await collection.findOneAndReplace({_id: {$eq: ObjectID(row._id)}}, values);
-          console.log(ires);
           if (ires.ok)
               res.json({res: true});
           else
@@ -44,9 +43,10 @@ function addDataHandler() {
         } else { // add data
           row = { created: thisdate, creator: req.session.name, ...row };
           const ires = await collection.insertOne(row);
-          if (ires.insertedCount == 1)
+          if (ires.insertedCount == 1) {
+            console.log('inserted successfully');
               res.json({res: true});
-          else
+          } else
               throw 'cannot insert data to db';
         }
       } catch(e) {
@@ -62,7 +62,6 @@ function fetchDataHandler() {
         try{
           if (!req.session.name)
             throw 'invalid session';
-          console.log('body:' + JSON.stringify(req.body));
           const fromDate = moment(req.body.fromDate);
           const toDate =moment(req.body.toDate) || moment().toDate(); // toDate < fromDate
 
@@ -73,7 +72,6 @@ function fetchDataHandler() {
               let findExpr = {buyDate: {$gte: fromDate.toDate(), $lt: toDate.toDate()}};
               if (filter && filter.column && filter.column == 'buyer' && filter.text.length)
                 findExpr = {...findExpr, buyer: {$eq: filter.text}};
-              console.log(JSON.stringify(findExpr));
               const findRes = await collection.find(findExpr);
               let items = await findRes.toArray();
               res.json(items);
