@@ -57,6 +57,19 @@ function addDataHandler() {
     }
 }
 
+// fomat of filters = {columnName: 'text', columnName2: 'text}
+
+const validFilterColumns = ['buyer', 'category', 'product'];
+function checkFilter(filter) {
+  let columns = Object.keys(filter);
+  return columns.reduce((res, c) => {
+    if (validFilterColumns.findIndex(v => c == v) != -1) {
+      res[c] = {$eq: filter[c]};
+    }
+    return res;
+  }, {});
+}
+
 function fetchDataHandler() {
     return async function(req, res, next) {
         try{
@@ -70,8 +83,12 @@ function fetchDataHandler() {
           if (await detectValidUser(client, req.session)) {
               const collection = client.db(config.db_name).collection('data');
               let findExpr = {buyDate: {$gte: fromDate.toDate(), $lt: toDate.toDate()}};
-              if (filter && filter.column && filter.column == 'buyer' && filter.text.length)
-                findExpr = {...findExpr, buyer: {$eq: filter.text}};
+              // if (filter && filter.column && filter.column == 'buyer' && filter.text.length)
+              //   findExpr = {...findExpr, buyer: {$eq: filter.text}};
+              let checkedFilter = checkFilter(filter);
+              console.log(`checked filter: ${JSON.stringify(checkedFilter)}`);
+              findExpr = {...findExpr, ...checkedFilter};
+              console.log(`filter: ${JSON.stringify(findExpr)}`);
               const findRes = await collection.find(findExpr);
               let items = await findRes.toArray();
               res.json(items);
