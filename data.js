@@ -70,6 +70,16 @@ function checkFilter(filter) {
   }, {});
 }
 
+function makeSummary(items) {
+  return items.reduce((res, itm) => {
+    if (res[itm.buyer]) {
+      res[itm.buyer] += itm.sum;
+    } else
+      res[itm.buyer] = itm.sum;
+    return res;
+  }, {})
+}
+
 function fetchDataHandler() {
     return async function(req, res, next) {
         try{
@@ -86,12 +96,10 @@ function fetchDataHandler() {
               // if (filter && filter.column && filter.column == 'buyer' && filter.text.length)
               //   findExpr = {...findExpr, buyer: {$eq: filter.text}};
               let checkedFilter = checkFilter(filter);
-              console.log(`checked filter: ${JSON.stringify(checkedFilter)}`);
               findExpr = {...findExpr, ...checkedFilter};
-              console.log(`filter: ${JSON.stringify(findExpr)}`);
               const findRes = await collection.find(findExpr);
               let items = await findRes.toArray();
-              res.json(items);
+              res.json({res: items, summary: makeSummary(items)});
           } else {
               res.json({res: false, text: 'invalid user'});
           }
