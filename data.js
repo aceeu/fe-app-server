@@ -63,7 +63,7 @@ const validFilterColumns = ['buyer', 'category', 'product'];
 function checkFilter(filter) {
   let columns = Object.keys(filter);
   return columns.reduce((res, c) => {
-    if (validFilterColumns.findIndex(v => c == v) != -1) {
+    if (filter[c].length && validFilterColumns.findIndex(v => c == v) != -1) {
       res[c] = {$eq: filter[c]};
     }
     return res;
