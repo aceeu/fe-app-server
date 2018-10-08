@@ -100,6 +100,8 @@ app.get('/user', function(req, res, next){
 
 app.post('/data', data.fetchDataHandler());
 
-app.post('/adddata', data.addDataHandler());
+app.post('/adddata', data.dataHandler(data.action_handlers[0]));
+app.post('/editdata', data.dataHandler(data.action_handlers[1]))
+app.post('/deldata', data.dataHandler(data.action_handlers[2]))
 
-app.listen(3001);
+app.listen(config.port);

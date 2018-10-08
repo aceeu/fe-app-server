@@ -1,7 +1,7 @@
 let fs = require('fs');
 let parse = require('csv-parse');
 let asyncc = require('async');
-var inputFile='./rashod.rashod.9-19-18-short.dump.csv';
+var inputFile='./rashod.rashod2018.csv';
 let config = require('./config');
 let MongoClient = require('mongodb').MongoClient;
 
@@ -14,15 +14,17 @@ function make(line) {
     buyDate: date, product: line[4], sum: +line[5], whom: line[7], note: line[6]};
 }
 
+console.log(config.database_url);
 
 (async function() {
   try{
     const client = await MongoClient.connect(config.database_url);
     const collection = client.db(config.db_name).collection('data');
-    await collection.drop()
+    // await collection.drop()
     var parser = parse({delimiter: ';'}, function (err, data) {
       asyncc.eachSeries(data, function (line, callback) {
         collection.insertOne(make(line)).then(() => {
+          console.log(new Date(line[2]));
           callback();
         },
         rej => console.log(rej));

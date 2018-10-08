@@ -4,60 +4,82 @@ let moment = require('moment');
 let config = require('./config');
 const detectValidUser = require('./helpers').detectValidUser;
 
-const requiredParams = ['_id', 'buyer', 'category', 'buyDate', 'product', 'sum', 'whom', 'note'];
 
-function checkData(data) {
+function dataHandler(action) {
+  return async function(req, res, next) {
+    try {
+      if (!req.session.name)
+        throw 'invalid session';
+      const client = await MongoClient.connect(config.database_url);
+      if (!detectValidUser(client, req.session))
+        throw 'invalid user';
+      const collection = client.db(config.db_name).collection('data');
+      await action(collection, req, res);
+    } catch(e) {
+      console.log(`exception: ${e}`);
+      res.json({res: false, text: e ? e.toString(): 'unknown'});
+    } finally {
+      res.end();
+    }
+  } // end function
+}
+
+
+
+async function delRow(collection, req, res) {
+  const row = req.body;
+  if (!row._id)
+    throw 'invalid id';
+  const ires = await collection.deleteOne({_id: ObjectID(row._id)});
+  if (ires.ok)
+    res.json({res: true, text: `${row.id} deleted`});
+  else
+    throw ires.lastErrorObject;
+}
+
+const requiredParamsForAdd = ['_id', 'creator', 'buyer', 'category', 'buyDate', 'product', 'sum', 'whom', 'note'];
+
+function checkDataForAdd(data) {
     const keys = Object.keys(data);
     // if (requiredParams.length != keys.length)
     //     return false;
     let res = [];
     keys.forEach((k, i) => {
-         res[i] = requiredParams.findIndex(p => p == k);
+         res[i] = requiredParamsForAdd.findIndex(p => p == k);
     })
     return res.findIndex(v => v === -1) == -1;
 }
 
-function addDataHandler() {
-    return async function(req, res, next) {
-      try {
-        if (!req.session.name) {
-          throw 'invalid session';
-        }
-        const client = await MongoClient.connect(config.database_url);
-        if (!detectValidUser(client, req.session))
-          throw 'invalid user';
-        const collection = client.db(config.db_name).collection('data');
-        let row = req.body;
-        if (!checkData(row))
-          throw 'invalid check data';
-        row = {...row, buyDate: new Date(row.buyDate)}; // convert to date of buydate value
-        const thisdate = moment().toDate();
-        if (row._id) { // edit data
-          const {_id, ...rowni} = row;
-          const values = {...rowni, editor: req.session.name, edited: thisdate}
-          const ires = await collection.findOneAndReplace({_id: {$eq: ObjectID(row._id)}}, values);
-          if (ires.ok)
-              res.json({res: true});
-          else
-              throw ires.lastErrorObject;
-        } else { // add data
-          row = { created: thisdate, creator: req.session.name, ...row };
-          const ires = await collection.insertOne(row);
-          if (ires.insertedCount == 1) {
-            console.log('inserted successfully');
-              res.json({res: true});
-          } else
-              throw 'cannot insert data to db';
-        }
-      } catch(e) {
-        res.json({res: false, text: e.toString()});
-      } finally {
-        res.end();
-      }
-    }
+async function editRow(collection, req, res) {
+  let row = req.body;
+  if (!checkDataForAdd(row))
+    throw 'invalid check data';
+  row = {...row, buyDate: new Date(row.buyDate)}; // convert to date of buydate value
+  const {_id, ...rowni} = row;
+  const thisdate = moment().toDate();
+  const values = {...rowni, editor: req.session.name, edited: thisdate}
+  const ires = await collection.findOneAndReplace({_id: {$eq: ObjectID(row._id)}}, values);
+  if (ires.ok)
+      res.json({res: true, text: 'item edited'});
+  else
+      throw ires.lastErrorObject;
 }
 
-// fomat of filters = {columnName: 'text', columnName2: 'text}
+async function addRow(collection, req, res) {
+  let row = req.body;
+  if (!checkDataForAdd(row))
+    throw 'invalid check data';
+  row = {...row, buyDate: new Date(row.buyDate)}; // convert to date of buydate value
+  const thisdate = moment().toDate();
+  row = { created: thisdate, creator: req.session.name, ...row };
+  const ires = await collection.insertOne(row);
+  if (ires.insertedCount == 1) {
+      res.json({res: true, text: 'item added'});
+  } else
+      throw 'cannot insert data to db';
+}
+
+// fomat of filters = {columnName: 'text filter'}
 
 const validFilterColumns = ['buyer', 'category', 'product'];
 function checkFilter(filter) {
@@ -111,5 +133,8 @@ function fetchDataHandler() {
     }
 }
 
-exports.addDataHandler = addDataHandler;
+const handlers=[addRow, editRow, delRow];
+
+exports.dataHandler = dataHandler;
 exports.fetchDataHandler = fetchDataHandler;
+exports.action_handlers = handlers;
