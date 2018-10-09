@@ -74,7 +74,7 @@ async function addRow(collection, req, res) {
   row = { created: thisdate, creator: req.session.name, ...row };
   const ires = await collection.insertOne(row);
   if (ires.insertedCount == 1) {
-      res.json({res: true, text: 'item added'});
+      res.json({res: true, text: 'item added', row},);
   } else
       throw 'cannot insert data to db';
 }
