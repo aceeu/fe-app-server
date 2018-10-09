@@ -32,7 +32,7 @@ async function delRow(collection, req, res) {
     throw 'invalid id';
   const ires = await collection.deleteOne({_id: ObjectID(row._id)});
   if (ires.ok)
-    res.json({res: true, text: `${row.id} deleted`});
+    res.json({res: true, text: `${row._id} deleted`});
   else
     throw ires.lastErrorObject;
 }
