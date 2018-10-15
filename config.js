@@ -1,5 +1,4 @@
-let dbAuth = require('./dbpasswd');
-exports.database_url = `mongodb+srv://${dbAuth.user}:${dbAuth.pwd}@cluster0-fg6zf.mongodb.net/test?retryWrites=true`;
+exports.database_url = 'mongodb://localhost:27017';
 exports.db_name = 'fe';
-exports.public_folder = '../fe-app/build';
+exports.public_folder = './public';
 exports.port = 8088;
