@@ -103,5 +103,6 @@ app.post('/data', data.fetchDataHandler());
 app.post('/adddata', data.dataHandler(data.action_handlers[0]));
 app.post('/editdata', data.dataHandler(data.action_handlers[1]))
 app.post('/deldata', data.dataHandler(data.action_handlers[2]))
+app.get('/categories', data.fetchCategories());
 
 app.listen(config.port);

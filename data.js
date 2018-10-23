@@ -133,8 +133,29 @@ function fetchDataHandler() {
     }
 }
 
+function fetchCategories() {
+  return async function (req, res, next) {
+    try{
+      const client = await MongoClient.connect(config.database_url);
+      if (await detectValidUser(client, req.session)) {
+          const collection = client.db(config.db_name).collection('categories');
+          const findRes = await collection.find();
+          let items = await findRes.toArray();
+          res.json({res: items});
+        } else {
+          throw 'invalid user';
+        }
+    } catch (e) {
+      res.json({res: false, text: e.toString()})
+    } finally {
+      res.end();
+    }
+  }
+}
+
 const handlers=[addRow, editRow, delRow];
 
 exports.dataHandler = dataHandler;
 exports.fetchDataHandler = fetchDataHandler;
 exports.action_handlers = handlers;
+exports.fetchCategories = fetchCategories;
