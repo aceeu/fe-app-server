@@ -6,7 +6,7 @@ const Collection = 'data';
 // creates the categories list with frequences of use
 async function FrequencyOfUseCathegories() {
   try {
-    const client = await MongoClient.connect(config.database_url);
+    const client = await MongoClient.connect(config.database_url, { useNewUrlParser: true });
     const collection = client.db(dbName).collection(Collection);
     const cursor = collection.find();
     const cats = [];

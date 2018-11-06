@@ -18,7 +18,7 @@ console.log(config.database_url);
 
 (async function() {
   try{
-    const client = await MongoClient.connect(config.database_url);
+    const client = await MongoClient.connect(config.database_url, { useNewUrlParser: true });
     const collection = client.db(config.db_name).collection('data');
     // await collection.drop()
     var parser = parse({delimiter: ';'}, function (err, data) {

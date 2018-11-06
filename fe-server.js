@@ -1,3 +1,7 @@
+// ssl optons
+const https = require('https');
+const fs = require('fs');
+
 let express = require('express');
 let session = require('express-session');
 let MongoClient = require('mongodb').MongoClient;
@@ -106,3 +110,8 @@ app.post('/deldata', data.dataHandler(data.action_handlers[2]))
 app.get('/categories', data.fetchCategories());
 
 app.listen(config.port);
+const ssloptions = {
+    cert: fs.readFileSync('./sslcert/fullchain.pem'),
+    key: fs.readFileSync('./sslcert/privkey.pem')
+};
+https.createServer(ssloptions, app).listen(config.sslport);
