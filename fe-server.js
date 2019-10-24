@@ -30,7 +30,11 @@ app.use(session({ secret: 'keyboard cat', cookie: { maxAge: 60000 * 60 }}));
 app.use(bodyParser.urlencoded({ extended: false }))
 // parse application/json
 app.use(bodyParser.json())
-
+app.use((req, res, next) => {
+  if (req.protocol=='http')
+    res.redirect('https://aceeu.ru:8089');
+    next();
+});
 const options = {
     dotfiles: 'ignore',
     etag: false,
@@ -40,8 +44,8 @@ const options = {
 app.use(express.static(config.public_folder, options));
 
 app.use((req, res, next) => {
-    res.setHeader('Content-Type', 'text/json');
-    next();
+  res.setHeader('Content-Type', 'text/json');
+  next();
 })
 
 app.get('/authtoken', (req, res, next) => {
@@ -110,6 +114,7 @@ app.post('/deldata', data.dataHandler(data.action_handlers[2]))
 app.get('/categories', data.fetchCategories());
 
 app.listen(config.port);
+
 const ssloptions = {
     cert: fs.readFileSync('./sslcert/fullchain.pem'),
     key: fs.readFileSync('./sslcert/privkey.pem')

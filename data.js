@@ -71,7 +71,7 @@ async function addRow(collection, req, res) {
     throw 'invalid check data';
   row = {...row, buyDate: new Date(row.buyDate)}; // convert to date of buydate value
   const thisdate = moment().toDate();
-  row = { created: thisdate, creator: req.session.name, ...row };
+  row = { created: thisdate, creator: req.session.name, ...row, sum: +row.sum };
   const ires = await collection.insertOne(row);
   if (ires.insertedCount == 1) {
       res.json({res: true, text: 'item added', row},);
@@ -95,9 +95,9 @@ function checkFilter(filter) {
 function makeSummary(items) {
   return items.reduce((res, itm) => {
     if (res[itm.buyer]) {
-      res[itm.buyer] += itm.sum;
+      res[itm.buyer] += +itm.sum;
     } else
-      res[itm.buyer] = itm.sum;
+      res[itm.buyer] = +itm.sum;
     return res;
   }, {})
 }
