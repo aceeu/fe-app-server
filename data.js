@@ -94,10 +94,10 @@ function checkFilter(filter) {
 
 function makeSummary(items) {
   return items.reduce((res, itm) => {
-    if (res[itm.buyer]) {
-      res[itm.buyer] += +itm.sum;
+    if (res[itm.category]) {
+      res[itm.category] += +itm.sum;
     } else
-      res[itm.buyer] = +itm.sum;
+      res[itm.category] = +itm.sum;
     return res;
   }, {})
 }
