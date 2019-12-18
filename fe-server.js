@@ -24,7 +24,7 @@ function jssha(text) {
   return shaObj.getHash("HEX");
 }
 
-app.use(session({ secret: 'keyboard cat', cookie: { maxAge: 60000 * 60 }}));
+app.use(session({ secret: 'keyboard cat', cookie: { maxAge: 60 * 60 * 25, sameSite: 'strict' }}));
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
