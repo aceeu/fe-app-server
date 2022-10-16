@@ -140,8 +140,8 @@ function fetchCategories() {
       if (await detectValidUser(client, req.session)) {
           const collection = client.db(config.db_name).collection('categories');
           const findRes = await collection.find();
-          let items = await findRes.toArray();
-          res.json({res: items});
+          const items = await findRes.toArray()
+          res.json({res: items.filter(v => !v.archived || v.archived !== 1)});
         } else {
           throw 'invalid user';
         }
